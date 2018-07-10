@@ -1,0 +1,119 @@
+---
+title: "Practical Machine learning"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# Importing required libraries
+library(Amelia)
+library(ggplot2)
+library(caret)
+library(e1071)
+```
+
+```{r}
+# Importing Test dataset
+df <- read.csv('pml-training.csv', na.strings=c("NA","#DIV/0!", ""),header = T)
+
+```
+
+```{r}
+#Checking the head and summary of the dataframe (Not showing the output beacuse of its size)
+# head(df) (not showing output)
+# summary(df) (not showing output)
+```
+
+```{r}
+#checking for null values
+any(is.na(df))
+
+#removing null values
+df.train <- df[,!sapply(df,function(x) any(is.na(x)))]
+
+```
+```{r}
+# importing test data set
+df1 <- read.csv('pml-testing.csv', na.strings=c("NA","#DIV/0!", ""), header = 1)
+```
+```{r}
+
+```
+
+```{r}
+#checking for null values
+any(is.na(df1))
+
+#removing null values
+df.test <- df1[,!sapply(df1,function(x) any(is.na(x)))]
+```
+
+```{r}
+#checking distribution of classes in training data set
+summary(df.train$classe)
+```
+
+```{r}
+# Removing first 5 columns from train data set as they are irrelevant in modeling
+train.set <- df.train[,-c(1:7)]
+```
+
+```{r}
+# Importing library for splitting dataset
+library(caTools)
+#Setting seed
+set.seed(111)
+
+# Random split of train datset
+split = sample.split(train.set$classe, SplitRatio = 0.70)
+
+final.train = subset(train.set, split == TRUE)
+final.test.from.train = subset(train.set, split == FALSE)
+```
+
+```{r}
+#importng library for decision tree model
+library(rpart)
+library(rpart.plot)
+
+```
+
+```{r}
+# Fitting the model
+fit1 <- rpart(classe ~ ., data=final.train, method="class")
+```
+
+```{r}
+# Prediction for splitted data set from training dataset
+predictions.on.train.test <- predict(fit1, final.test.from.train  , type = "class")
+
+```
+```{r}
+#Confusion matrix to check model validation
+confusionMatrix(predictions.on.train.test, final.test.from.train$classe)
+```
+
+```{r}
+# Now fitting decision tree model again for whole training datset
+fit <- rpart(classe ~ ., data=train.set, method="class")
+```
+```{r}
+#Plotting the decision tree
+rpart.plot(fit, type = 3, digits = 3, fallen.leaves =TRUE)
+```
+
+```{r}
+# Selecting relevant columns of test dataset
+test.set <- df.test[,-c(1:7)]
+```
+```{r}
+
+#Predictions  
+predictions <- predict(fit, test.set, type = "class")
+
+predictions
+```
+
